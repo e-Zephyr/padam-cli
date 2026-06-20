@@ -1,0 +1,13 @@
+[project]
+name = "padam-cli"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "beautifulsoup4>=4.15.0",
+    "httpx>=0.28.1",
+    "lxml>=6.1.1",
+    "requests>=2.34.2",
+    "textual>=8.2.7",
+]
