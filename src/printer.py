@@ -1,4 +1,4 @@
-from models import Movie
+from src.models import Movie
 
 
 def print_movies(

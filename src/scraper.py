@@ -7,8 +7,8 @@ import re
 import httpx
 from bs4 import BeautifulSoup
 
-from constants import DOMAIN, HEADERS, DOWNLOAD_PATH
-from models import Movie, MovieQualities
+from src.constants import DOMAIN, HEADERS, DOWNLOAD_PATH
+from src.models import Movie, MovieQualities
 import subprocess
 
 def download_padam(url: str, output: str):

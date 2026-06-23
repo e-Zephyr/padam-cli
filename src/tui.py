@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
 from textual.widgets import DataTable, Static
 from textual.containers import Horizontal
-from models import Movie
+from src.models import Movie
 
 
 class Padam(App):
