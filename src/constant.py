@@ -8,3 +8,5 @@ HEADERS = {
 }
 
 DOWNLOAD_PATH = "~/Downloads/"
+
+HOME = "https://moviesda32.com/home.html"

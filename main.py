@@ -1,22 +1,26 @@
+from src.argparser import ArgParse
+from src.search import Search
+from src.media import Media
+
 import asyncio
 
-from src.scraper import fetch_latest_movies ,start_scraper
-from src.cache import save_movies #, download_poster
-from src.tui import Padam
 
 async def main():
-    
-    movies = await fetch_latest_movies("https://moviesda32.com/home.html")
-    print(f"\nFetched {len(movies)} movies")
-    #for movie in movies:
-    #    filename = (movie.page_url.rstrip("/").split("/")[-1] + ".jpg")
-    #    movie.poster_path = download_poster(movie.poster, filename)
-    
-    save_movies(movies)
-    app = Padam(movies)
-    await app.run_async()
-    await start_scraper(app.selected_movie.page_url)
+    args = ArgParse()
+    search = Search()
+    args.parse()
 
+    if args.query:
+        await search.show_results_tui(args.query, args.year)
+        if args.download:
+            Media.download_movie(search.selected_server_url)
+        else:
+            Media.stream_movie(search.selected_server_url)
+
+    elif args.latest:
+        pass
+    else:
+        raise ValueError
 
 if __name__ == "__main__":
     asyncio.run(main())
