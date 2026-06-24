@@ -8,19 +8,39 @@ class ArgParse:
         self.latest = False
         self.download = True
 
+    def help(self):
+        print(
+            """
+padam-cli
+
+Usage:
+padam-cli latest
+padam-cli --search <movie> [year]
+
+Options:
+-P, --play       Stream movie
+-D, --download   Download movie (default)
+-h, --help       Show help
+
+Examples:
+padam-cli latest
+padam-cli --search Leo
+padam-cli -D --search Leo 2023
+padam-cli -P --search Zombie
+"""
+        )
+
     def parse(self):
         command = sys.argv[1:]
 
         if not command:
-            raise ValueError(
-                "No command provided.\n"
-                "Usage:\n"
-                "  padam-cli latest\n"
-                "  padam-cli --search <movie> [year]"
-                "  padam-cli -P for play by default Download if not given"
-                "  padam-cli -D for download"
-            )
-        
+            self.help()
+            sys.exit(0)
+
+        if "-h" in command or "--help" in command:
+            self.help()
+            sys.exit(0)
+
         if "-P" in command:
             self.download = False
 
