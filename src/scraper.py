@@ -1,4 +1,3 @@
-import asyncio
 import httpx
 import re
 
@@ -8,7 +7,6 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from src.constant import DOMAIN, HEADERS, HOME
 from src.logger import Logger
-from src.model import MovieQualities, Movie
 
 class Scraper:
     def __init__(self):
