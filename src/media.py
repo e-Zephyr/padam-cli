@@ -31,3 +31,10 @@ class Media:
     @staticmethod
     def stream_movie(url: str):
         subprocess.run(["mpv", url], check=True)
+
+    @staticmethod
+    def start(download:bool,title:str, url:str):
+        if download:
+            Media.download_movie(url, title)
+        else:
+            Media.stream_movie(url)

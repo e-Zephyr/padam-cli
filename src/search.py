@@ -10,7 +10,7 @@ class Search:
     def __init__(self):
         self.search_url = None
         self.results = []
-        self.selected_movie_url= None
+        self.selected_movie = None
         self.selected_quality_href = None
         self.selected_server_url = None
 
@@ -44,17 +44,17 @@ class Search:
 
         # 1. Movie Selection via Fuzzy Finder
         movie_choices = [
-            Choice(value=item["movie_url"], name=item["title"]) 
+            Choice(value=item, name=item["title"]) 
             for item in self.results
         ]
         
-        self.selected_movie_url = await inquirer.fuzzy(
+        self.selected_movie = await inquirer.fuzzy(
             message="Select the movie (Type to search):",
             choices=movie_choices,
             match_exact=False,
         ).execute_async()
 
-        await self.scraper.get_qualities(self.selected_movie_url, query)
+        await self.scraper.get_qualities(self.selected_movie["movie_url"], query)
         
         available = {
             "1080p": self.scraper.p1080,
