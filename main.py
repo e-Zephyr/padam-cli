@@ -3,7 +3,7 @@ from src.search import Search
 from src.media import Media
 
 import asyncio
-
+import sys
 
 async def main():
     args = ArgParse()
@@ -20,4 +20,8 @@ async def main():
         raise ValueError
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[!] Process interrupted by user. Exiting.............")
+        sys.exit(0)
