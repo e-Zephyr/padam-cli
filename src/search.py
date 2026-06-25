@@ -1,4 +1,4 @@
-from src.constant import DOMAIN , HEADERS
+from src.constant import DOMAIN , HEADERS, HOME
 from urllib.parse import urljoin
 from src.scraper import Scraper
 from InquirerPy import inquirer
@@ -33,14 +33,29 @@ class Search:
                         self.results.append(movie)
 
             return self.results
-           
-    async def show_results_tui(self, query: str, year: str):
-        self.parse_search_url(query, year)
-        await self.search_movie_url(query, year)
         
-        if not self.results:
-            print("No movies found.")
-            return
+    async def search_latest_movies(self):
+        async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
+            soup = await self.scraper.fetch_page(client, HOME)
+            for movie in soup.select("div.latest"):
+                title = movie.find("strong").get_text(strip=True)
+                link = movie.find("a", string="Download Now") or movie.find("a", class_= "green")
+                if not link:
+                    continue
+                self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
+
+
+    async def show_results_tui(self, query: str | None = None, year: str | None = None):
+
+        if query:
+            self.parse_search_url(query, year)
+            await self.search_movie_url(query, year)
+            
+            if not self.results:
+                print("No movies found.")
+                return
+        else:
+            await self.search_latest_movies()
 
         # 1. Movie Selection via Fuzzy Finder
         movie_choices = [
@@ -54,7 +69,8 @@ class Search:
             match_exact=False,
         ).execute_async()
 
-        await self.scraper.get_qualities(self.selected_movie["movie_url"], query)
+        first_letter = self.selected_movie["title"][0].lower()
+        await self.scraper.get_qualities(self.selected_movie["movie_url"], first_letter)
         
         available = {
             "1080p": self.scraper.p1080,
