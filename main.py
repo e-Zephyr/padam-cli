@@ -12,7 +12,7 @@ async def main():
 
     if args.query:
         await search.show_results_tui(args.query, args.year)
-        Media.start(args.download,search.selected_movie["title"], search.selected_server_url)
+        Media.process(args.download,search.selected_movie["title"], search.selected_server_url)
     elif args.latest:
         pass
     else:
