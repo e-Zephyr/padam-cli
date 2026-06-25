@@ -29,11 +29,6 @@ class Search:
                 links = await self.scraper.extract_links(client,page)
                 for text, href in links:
                     movie = {"title": text, "movie_url": urljoin(DOMAIN,href)}
-
-                    if year and year in text and query.lower() in text.lower():
-                        self.results = [movie]
-                        return True
-
                     if query.lower() in text.lower():
                         self.results.append(movie)
 

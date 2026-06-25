@@ -1,82 +1,61 @@
-import sys
+import argparse
 
 
 class ArgParse:
     def __init__(self):
-        self.query = None
-        self.year = None
-        self.latest = False
-        self.download = True
-
-    def help(self):
-        print(
-            """
-padam-cli
-
-Usage:
-padam-cli latest
-padam-cli --search <movie> [year]
-
-Options:
--P, --play       Stream movie
--D, --download   Download movie (default)
--h, --help       Show help
-
-Examples:
-padam-cli latest
-padam-cli --search Leo
-padam-cli -D --search Leo 2023
-padam-cli -P --search Zombie
-"""
+        parser = argparse.ArgumentParser(
+            prog="padam-cli",
+            description="Browse, stream and download Tamil movies."
         )
 
+        # latest command
+        parser.add_argument(
+            "command",
+            nargs="?",
+            choices=["latest"],
+            help="Show latest movies"
+        )
+
+        # search
+        parser.add_argument(
+            "-s", "--search",
+            metavar="MOVIE",
+            help="Search movie"
+        )
+
+        # year
+        parser.add_argument(
+            "-y", "--year",
+            type=str,
+            metavar="YEAR",
+            help="Movie year"
+        )
+
+        # play/download
+        group = parser.add_mutually_exclusive_group()
+
+        group.add_argument(
+            "-p", "--play",
+            action="store_true",
+            help="Stream movie"
+        )
+
+        group.add_argument(
+            "-d", "--download",
+            action="store_true",
+            help="Download movie (default)"
+        )
+
+        self.parser = parser
+
     def parse(self):
-        command = sys.argv[1:]
+        args = self.parser.parse_args()
 
-        if not command:
-            self.help()
-            sys.exit(0)
+        self.query = args.search
+        self.year = args.year
+        self.latest = args.command == "latest"
 
-        if "-h" in command or "--help" in command:
-            self.help()
-            sys.exit(0)
-
-        if "-P" in command:
-            self.download = False
-
-        if "-D" in command:
-            self.download = True
-
-        if "--search" in command:
-            index = command.index("--search")
-
-            args = command[index + 1 :]
-
-            if not args:
-                raise ValueError("Movie name is required.")
-
-            # Check if last argument is a year
-            if args[-1].isdigit():
-                if len(args[-1]) != 4:
-                    raise ValueError(f"Invalid year: {args[-1]}")
-
-                self.year = args[-1]
-                self.query = " ".join(args[:-1])
-
-                if not self.query:
-                    raise ValueError("Movie name is required.")
-            else:
-                self.query = " ".join(args)
-
-        elif command[0] == "latest":
-            self.latest = True
-
-        else:
-            raise ValueError(
-                f"Unknown command: {' '.join(command)}\n"
-                "Usage:\n"
-                "  padam-cli latest\n"
-                "  padam-cli --search <movie> [year]"
-            )
+        # Download is the default
+        self.download = not args.play
 
         return self
