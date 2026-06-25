@@ -15,8 +15,8 @@ class Scraper:
         self.p480 = None
         self.p360 = None
 
-    
-    async def fetch_page(self,client: httpx.AsyncClient, url: str):
+    # Fetch the pages
+    async def fetch_page(self,client: httpx.AsyncClient, url: str) -> BeautifulSoup | None:
 
         try:
             response = await client.get(url)
@@ -27,15 +27,16 @@ class Scraper:
             Logger.log(f"Failed to fetch {url}: {e}")
             return None
         
-
-    async def extract_links(self, client: httpx.AsyncClient, url: str):
+    # Extract the links from pages
+    async def extract_links(self, client: httpx.AsyncClient, url: str) -> list[tuple[str,str]]:
         soup = await self.fetch_page(client, url) 
 
         if not soup:return []
         
         return [ ( a.get_text(strip=True) or "[No Text]", a["href"] ) for a in soup.find_all("a", href=True) ]
     
-    async def get_pagination_pages(self, client:httpx.AsyncClient, url:str):
+    #Page navigation
+    async def get_pagination_pages(self, client:httpx.AsyncClient, url:str) -> list[str]:
         links = await self.extract_links(client, url)
 
         pages = {url}
@@ -46,7 +47,8 @@ class Scraper:
 
         return sorted(pages)
     
-    async def get_qualities(self, movie_url: str, query: str):
+    # fetch the qualities from the page
+    async def get_qualities(self, movie_url: str, query: str) -> None:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             links = await self.extract_links(client, movie_url)
             original_page = urljoin( DOMAIN, [href for text, href in links if query.lower() in text.lower() and href != "#" and href != "/"][0])
@@ -71,8 +73,9 @@ class Scraper:
                     self.p480 = href
                 elif quality == "360p":
                     self.p360 = href
-
-    async def get_download_links(self, download_page_link: str):
+    
+    #fetch the downloable mp3 or m3u8 urls
+    async def get_download_links(self, download_page_link: str) -> list[str]:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
             soup = await self.fetch_page(client, download_page_link)
             links = [link["href"] for link in soup.select("div.dlink a")]
@@ -81,8 +84,9 @@ class Scraper:
             download_links = [link["href"] for link in dlinks.select("div.dlink a")]
             mp_4_links = [link for link in download_links if link.endswith((".mp4", ".m3u8"))]
             return mp_4_links
-
-    async def get_download_informations(self, quality_href):
+        
+    #used to crawling to the downloadpage
+    async def get_download_informations(self, quality_href) -> list[str]:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             soup = await self.fetch_page(client, urljoin(DOMAIN, quality_href))
             download_info_page_link = soup.find("a", class_ = "coral")
