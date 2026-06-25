@@ -1,40 +1,51 @@
 import subprocess
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
+from rich.console import Console
 from src.constant import DOWNLOAD_PATH
 
+console = Console()
+
 class Media:
-    @staticmethod
-    def get_filename(url: str, title: str | None = None) -> str:
+    def __init__(self, url: str, title: str | None = None, download_dir: str = DOWNLOAD_PATH):
+        self.url = url
+        self.title = title
+        self.download_dir = Path(download_dir).expanduser()
+        self.filename = self._generate_filename()
+        self.output_path = self.download_dir / self.filename
+
+    def _generate_filename(self) -> str:
         try:
-            query = parse_qs(urlparse(url).query)
+            query = parse_qs(urlparse(self.url).query)
             if "path" in query:
                 return Path(query["path"][0]).name
         except Exception:
             pass
 
-        filename = Path(urlparse(url).path).name
-        
-        if "." in filename:
-            return filename
-        if title:
-            return f"{title}.mp4"
-            
+        name = Path(urlparse(self.url).path).name
+        if "." in name: return name
+        if self.title: return f"{self.title}.mp4"
         return "movie.mp4"
 
-    @staticmethod
-    def download_movie(url: str, title: str | None = None):
-        filename = Media.get_filename(url, title)
-        output = Path(DOWNLOAD_PATH).expanduser() / filename
-        subprocess.run(["ffmpeg", "-i", url, "-c", "copy", "-y", str(output)], check=True)
+    def download(self):
+        cmd = [
+            "ffmpeg",
+            "-i", self.url, 
+            "-c", "copy", 
+            "-y", 
+            str(self.output_path)
+        ]
+        console.print(f"[bold cyan]Download started. Downloading in path {self.output_path}[/bold cyan]")
+        with console.status(f"[bold cyan]Downloading:[/bold cyan] {self.filename}", spinner="dots"):
+            subprocess.run(cmd, check=True)
+        console.print(f"[bold green]✓ Complete:[/bold green] {self.output_path}")
 
-    @staticmethod
-    def stream_movie(url: str):
-        subprocess.run(["mpv", url], check=True)
+    def stream(self):
+        console.print("[bold cyan]Starting stream with mpv...[/bold cyan]")
+        subprocess.run(["mpv", self.url], check=True)
 
-    @staticmethod
-    def process(download:bool,title:str, url:str):
-        if download:
-            Media.download_movie(url, title)
+    def process(self, should_download: bool):
+        if should_download:
+            self.download()
         else:
-            Media.stream_movie(url)
+            self.stream()

@@ -12,10 +12,12 @@ async def main():
 
     if args.query:
         await search.show_results_tui(args.query, args.year)
-        Media.process(args.download,search.selected_movie["title"], search.selected_server_url)
+        media = Media(url=search.selected_server_url, title=search.selected_movie["title"])
+        media.process(args.download)
     elif args.latest:
         await search.show_results_tui()
-        Media.process(args.download,search.selected_movie["title"], search.selected_server_url)
+        media = Media(url=search.selected_server_url, title=search.selected_movie["title"])
+        media.process(args.download)
     else:
         raise ValueError
 
