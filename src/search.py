@@ -15,14 +15,17 @@ class Search:
         self.selected_server_url = None
 
         self.scraper = Scraper()
-    def parse_search_url(self, query:str, year: str | None=None):
+
+    #parse the base url for search
+    def parse_search_url(self, query:str, year: str | None=None) -> None:
         if year:
             self.search_url = urljoin(DOMAIN,f"/tamil-{year}-movies/")
         else:
             href = query[0].lower()
             self.search_url = urljoin(DOMAIN ,f"/tamil-movies/{href}/")
 
-    async def search_movie_url(self, query:str, year:str | None=None):
+    #search in the parsed base url
+    async def search_movie_url(self, query:str, year:str | None=None) -> list[dict[str, str]]:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             pages = await self.scraper.get_pagination_pages(client, self.search_url)
             for page in pages:
@@ -34,7 +37,8 @@ class Search:
 
             return self.results
         
-    async def search_latest_movies(self):
+    #used only for fetch latest added movies
+    async def search_latest_movies(self) -> None:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             soup = await self.scraper.fetch_page(client, HOME)
             for movie in soup.select("div.latest"):
@@ -44,8 +48,8 @@ class Search:
                     continue
                 self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
 
-
-    async def show_results_tui(self, query: str | None = None, year: str | None = None):
+    #displays the results
+    async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:
 
         if query:
             self.parse_search_url(query, year)
