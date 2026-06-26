@@ -33,7 +33,13 @@ class Media:
         self.download_dir.mkdir(parents=True, exist_ok=True)
         yt_dlp_cmd = ["yt-dlp",self.url,"-o", str(self.output_path)]
         ffmpeg_cmd = [ "ffmpeg", "-i", self.url, "-c", "copy", "-y", str(self.output_path) ]
-        console.print(f"[cyan][1] : yt_dlp (fast start, slow download)\n[2] : ffmpeg (slow start, fast download\n[3] : webbroser (fast start, fast download))[/cyan]")
+        console.print(
+            "[cyan]"
+            "[1] yt-dlp     - Fast startup, slow download speed\n"
+            "[2] ffmpeg     - Slow startup, fast download speed\n"
+            "[3] webbrowser - Fast startup, standard download speed"
+            "[/cyan]"
+        )
         choise = int(console.input(f"[yellow]Choose the dowloader: [/yellow]"))
 
         console.print(f"[bold cyan]Download started. Downloading in path {self.output_path}[/bold cyan]")
