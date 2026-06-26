@@ -1,8 +1,10 @@
 import subprocess
+import webbrowser
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from rich.console import Console
 from src.constant import DOWNLOAD_PATH
+
 
 console = Console()
 
@@ -28,18 +30,18 @@ class Media:
         return "movie.mp4"
 
     def download(self):
-        cmd = [
-            "ffmpeg",
-            "-i", self.url, 
-            "-c", "copy", 
-            "-y", 
-            str(self.output_path)
-        ]
-        console.print(f"[bold cyan]Download started. Downloading in path {self.output_path}[/bold cyan]")
-        with console.status(f"[bold cyan]Downloading:[/bold cyan] {self.filename}", spinner="dots"):
-            subprocess.run(cmd, check=True)
-        console.print(f"[bold green]✓ Complete:[/bold green] {self.output_path}")
+        self.download_dir.mkdir(parents=True, exist_ok=True)
+        yt_dlp_cmd = ["yt-dlp",self.url,"-o", str(self.output_path)]
+        ffmpeg_cmd = [ "ffmpeg", "-i", self.url, "-c", "copy", "-y", str(self.output_path) ]
+        console.print(f"[cyan][1] : yt_dlp (fast start, slow download)\n[2] : ffmpeg (slow start, fast download\n[3] : webbroser (fast start, fast download))[/cyan]")
+        choise = int(console.input(f"[yellow]Choose the dowloader: [/yellow]"))
 
+        console.print(f"[bold cyan]Download started. Downloading in path {self.output_path}[/bold cyan]")
+        try:
+            subprocess.run(yt_dlp_cmd, check=True) if choise == 1 else subprocess.run(ffmpeg_cmd, check=True) if choise == 2 else webbrowser.open(self.url)
+            if choise!=3 : console.print(f"[bold green]✓ Complete:[/bold green] {self.output_path}")
+        except Exception as e:
+            console.print(f"[bold red]✗ Download failed.[/bold red] :\n{e}")
     def stream(self):
         console.print("[bold cyan]Starting stream with mpv...[/bold cyan]")
         subprocess.run(["mpv", self.url], check=True)
