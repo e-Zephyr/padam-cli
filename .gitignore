@@ -14,5 +14,3 @@ cache/
 test.py
 main.bak.py
 *txt
-PKGBUILD
-install.sh
