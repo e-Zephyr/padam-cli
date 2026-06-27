@@ -1,4 +1,4 @@
-DOMAIN = "https://moviesda32.com"
+DOMAIN = "https://moviesda33.com"
 
 HEADERS = {
     "User-Agent": (
@@ -9,4 +9,4 @@ HEADERS = {
 
 DOWNLOAD_PATH = "~/Downloads/"
 
-HOME = "https://moviesda32.com/home.html"
+HOME = "https://moviesda33.com/home.html"
