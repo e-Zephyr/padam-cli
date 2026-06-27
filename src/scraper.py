@@ -18,6 +18,8 @@ class Scraper:
         self.p480 = None
         self.p360 = None
 
+        self.resolver_current_href = None
+
     # Fetch the pages
     async def fetch_page(self,client: httpx.AsyncClient, url: str) -> BeautifulSoup | None:
 
@@ -82,6 +84,14 @@ class Scraper:
                 elif quality == "360":
                     self.p360 = href
     
+
+    async def resolver(self, href: str):
+        self.resolver_current_href = href
+        async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
+            links = await self.extract_links(client, urljoin(DOMAIN, href))
+            results = [(text, href) for text, href in links if href not in ("/", "#") and not re.fullmatch(r"[A-Z]",text)]
+            return results
+
     #fetch the downloable mp3 or m3u8 urls
     async def get_download_links(self, download_page_link: str) -> list[str]:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
@@ -98,8 +108,11 @@ class Scraper:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             soup = await self.fetch_page(client, urljoin(DOMAIN, quality_href))
             download_info_page_link = soup.find("a", class_ = "coral")
-
-            dlinks = await self.fetch_page(client, urljoin(DOMAIN, download_info_page_link["href"]))
+            
+            if download_info_page_link:
+                dlinks = await self.fetch_page(client, urljoin(DOMAIN, download_info_page_link["href"]))
+            else:
+                dlinks = await self.fetch_page(client, urljoin(DOMAIN, self.resolver_current_href))
             file_download_page_links = [link["href"] for link in dlinks.select("div.dlink a")]
             movie_download_links = await self.get_download_links(file_download_page_links[0])
 

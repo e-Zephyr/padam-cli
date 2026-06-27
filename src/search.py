@@ -92,20 +92,30 @@ class Search:
         }
         available = {k: v for k, v in available.items() if v}
 
-        if not available:
-            console.print("[bold red] No qualities found. Exiting.....[/bold red]")
-            Logger.log("No qualities found. Exiting.....")
-            sys.exit(0)
-
         # 2. Quality Selection (Standard List is cleaner for small sets, but fuzzy works too)
-        selected_quality = await inquirer.select(
-            message="Select the quality:",
-            choices=list(available.keys()),
-        ).execute_async()
-        
-        self.selected_quality_href = available[selected_quality]
-        
-        available_servers = await self.scraper.get_download_informations(self.selected_quality_href)
+        if available:
+            selected_quality = await inquirer.select(
+                message="Select the quality:",
+                choices=list(available.keys()),
+            ).execute_async()
+            
+            self.selected_quality_href = available[selected_quality]
+            available_servers = await self.scraper.get_download_informations(self.selected_quality_href)
+        else:
+            resolver_results = await self.scraper.resolver(self.selected_movie["movie_url"])
+            while True:
+                if any("download" in text.lower() for text, _ in resolver_results): break
+
+                selected = await inquirer.select(
+                    message="Select and click Enter:",
+                    choices=[text for text, _ in resolver_results]
+                ).execute_async()
+
+                next_href = dict(resolver_results)[selected]
+                Logger.log(f"Moving to next: {next_href}" )
+                resolver_results = await self.scraper.resolver(next_href)
+            available_servers = await self.scraper.get_download_informations(self.scraper.resolver_current_href)
+            
         if not available_servers:
             console.print("[bold red]No servers available.[/bold red]")
             Logger.log("No server found. Exiting....")
