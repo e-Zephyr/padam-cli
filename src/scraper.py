@@ -1,12 +1,15 @@
 import httpx
 import re
+import sys
 
-
+from rich.console import Console
 from typing import Optional
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from src.constant import DOMAIN, HEADERS, HOME
 from src.logger import Logger
+
+console = Console()
 
 class Scraper:
     def __init__(self):
@@ -31,20 +34,21 @@ class Scraper:
     async def extract_links(self, client: httpx.AsyncClient, url: str) -> list[tuple[str,str]]:
         soup = await self.fetch_page(client, url) 
 
-        if not soup:return []
-        
+        if not soup:
+            console.print("[bold yellow]There is a problem in extracting links[/bold yellow]")
+            Logger.log("Soup Not Found: scaraper.py extract_links method")
         return [ ( a.get_text(strip=True) or "[No Text]", a["href"] ) for a in soup.find_all("a", href=True) ]
-    
+        Logger.log("Links Extracted sucessfuly")
+
     #Page navigation
     async def get_pagination_pages(self, client:httpx.AsyncClient, url:str) -> list[str]:
         links = await self.extract_links(client, url)
-
         pages = {url}
 
         for text, href in links:
             if text.isdigit():
                 pages.add(urljoin(DOMAIN,href))
-
+        Logger.log(f"{len(pages)} pages found")
         return sorted(pages)
     
     # fetch the qualities from the page
@@ -53,25 +57,29 @@ class Scraper:
             links = await self.extract_links(client, movie_url)
             original_page = urljoin( DOMAIN, [href for text, href in links if query.lower() in text.lower() and href != "#" and href != "/"][0])
             if not original_page:
-                Logger("movie link not found")
+                console.print(f"[red]There is problem in scaraper[/red]")
+                Logger("Movie Link Not Found: in scraper.py get_qualities method")
+                Logger(f"this is only founded: {original_page} and Exiting.....")
+                sys.exit(0)
+
             Logger.log(f"Found: {original_page}")
 
             quality_links = await self.extract_links(client,original_page)
 
             for _, href in quality_links:
-                match = re.search(r"(1080p|720p|480p|360p)", href, re.IGNORECASE)
+                match = re.search(r"(1080|720|480|360)", href, re.IGNORECASE)
 
                 if not match: continue
 
                 quality = match.group()
 
-                if quality == "1080p":
+                if quality == "1080":
                     self.p1080 = href
-                elif quality == "720p":
+                elif quality == "720":
                     self.p720 = href
-                elif quality == "480p":
+                elif quality == "480":
                     self.p480 = href
-                elif quality == "360p":
+                elif quality == "360":
                     self.p360 = href
     
     #fetch the downloable mp3 or m3u8 urls

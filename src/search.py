@@ -3,9 +3,13 @@ from urllib.parse import urljoin
 from src.scraper import Scraper
 from InquirerPy import inquirer
 from InquirerPy.base import Choice
+from src.logger import Logger
+
+from rich.console import Console
+import sys
 import httpx
 
-
+console = Console()
 class Search:
     def __init__(self):
         self.search_url = None
@@ -23,6 +27,7 @@ class Search:
         else:
             href = query[0].lower()
             self.search_url = urljoin(DOMAIN ,f"/tamil-movies/{href}/")
+        Logger.log(f"Searching url: {self.search_url}")
 
     #search in the parsed base url
     async def search_movie_url(self, query:str, year:str | None=None) -> list[dict[str, str]]:
@@ -34,6 +39,7 @@ class Search:
                     movie = {"title": text, "movie_url": urljoin(DOMAIN,href)}
                     if query.lower() in text.lower():
                         self.results.append(movie)
+                        Logger.log(f" Found : [{movie["title"]}] --> {movie["movie_url"]}")
 
             return self.results
         
@@ -47,16 +53,18 @@ class Search:
                 if not link:
                     continue
                 self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
+                Logger.log(f"{len(self.results)} of Lates movies found")
 
     #displays the results
     async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:
-
         if query:
             self.parse_search_url(query, year)
             await self.search_movie_url(query, year)
             
             if not self.results:
-                print("No movies found.")
+                console.print(f"[bold yellow] No movies found. Exiting....... [/bold yellow]")
+                Logger.log("No movies found. Exiting.......")
+                sys.exit(0)
                 return
         else:
             await self.search_latest_movies()
@@ -72,7 +80,7 @@ class Search:
             choices=movie_choices,
             match_exact=False,
         ).execute_async()
-
+        Logger.log(f"Selected Movie : {self.selected_movie}")
         first_letter = self.selected_movie["title"][0].lower()
         await self.scraper.get_qualities(self.selected_movie["movie_url"], first_letter)
         
@@ -85,8 +93,9 @@ class Search:
         available = {k: v for k, v in available.items() if v}
 
         if not available:
-            print("No qualities available.")
-            return
+            console.print("[bold red] No qualities found. Exiting.....[/bold red]")
+            Logger.log("No qualities found. Exiting.....")
+            sys.exit(0)
 
         # 2. Quality Selection (Standard List is cleaner for small sets, but fuzzy works too)
         selected_quality = await inquirer.select(
@@ -98,8 +107,9 @@ class Search:
         
         available_servers = await self.scraper.get_download_informations(self.selected_quality_href)
         if not available_servers:
-            print("No servers available.")
-            return
+            console.print("[bold red]No servers available.[/bold red]")
+            Logger.log("No server found. Exiting....")
+            sys.exit(0)
 
         # 3. Server Selection via Fuzzy Finder
         self.selected_server_url = await inquirer.fuzzy(
@@ -107,4 +117,4 @@ class Search:
             choices=available_servers,
         ).execute_async()
         
-        print(f"Selected Server: {self.selected_server_url}")
+        console.print(f"[green]Selected Server: {self.selected_server_url}[/green]")
