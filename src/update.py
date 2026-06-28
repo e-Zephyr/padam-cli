@@ -3,6 +3,7 @@
 from pathlib import Path
 import subprocess
 import sys
+import platform
 
 from rich.console import Console
 
@@ -34,3 +35,9 @@ class Updater:
         except subprocess.CalledProcessError:
             console.print("[red]Failed to update padam-cli.[/red]")
             sys.exit(1)
+
+        
+        if platform.system == "windows":
+                subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(REPO_DIR / "install.ps1")],check=True)
+        else:
+             subprocess.run([str(REPO_DIR / "install.sh")],check=True,)
