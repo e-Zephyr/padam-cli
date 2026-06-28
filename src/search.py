@@ -13,10 +13,16 @@ console = Console()
 class Search:
     def __init__(self):
         self.search_url = None
+        
         self.results = []
         self.selected_movie = None
+
+        self.available_qualities = None
         self.selected_quality_href = None
+        
+        self.available_servers = None
         self.selected_server_url = None
+        
 
         self.scraper = Scraper()
 
@@ -43,7 +49,7 @@ class Search:
 
             return self.results
         
-    #used only for fetch latest added movies
+    # used only for fetch latest added movies
     async def search_latest_movies(self) -> None:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             soup = await self.scraper.fetch_page(client, HOME)
@@ -55,10 +61,8 @@ class Search:
                 self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
             Logger.log(f"{len(self.results)} of Latest movies found")
 
-    #displays the results
-    async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:
-
-        # 1. Determine movie source
+    # Determine movie source
+    async def determine_movie_source(self, query:str | None = None, year:str | None = None) -> None:
         if query:
             self.parse_search_url(query, year)
             await self.search_movie_url(query, year)
@@ -71,7 +75,8 @@ class Search:
         else:
             await self.search_latest_movies()
 
-        # 2. Prompt movie selection
+    # Prompt movie selection
+    async def prompt_movie_selection(self) -> None:
         movie_choices = [
             Choice(value=item, name=item["title"]) 
             for item in self.results
@@ -84,7 +89,8 @@ class Search:
         ).execute_async()
         Logger.log(f"Selected Movie : {self.selected_movie}")
 
-        # 3. Load available video qualities
+    # Load available servers
+    async def load_available_qualities(self) -> None:
         first_letter = self.selected_movie["title"][0].lower()
         await self.scraper.get_qualities(self.selected_movie["movie_url"], first_letter)
         
@@ -94,17 +100,19 @@ class Search:
             "480p": self.scraper.p480,
             "360p": self.scraper.p360
         }
-        available = {k: v for k, v in available.items() if v}
 
-        # 4. Retrieve download servers
-        if available:
+        self.available_qualities = {k: v for k, v in available.items() if v}
+
+    # Retrieve download servers
+    async def retrieve_download_servers(self) -> None:
+        if self.available_qualities:
             selected_quality = await inquirer.select(
                 message="Select the quality:",
-                choices=list(available.keys()),
+                choices=list(self.available_qualities.keys()),
             ).execute_async()
             
-            self.selected_quality_href = available[selected_quality]
-            available_servers = await self.scraper.get_download_informations(self.selected_quality_href)
+            self.selected_quality_href = self.available_qualities[selected_quality]
+            self.available_servers = await self.scraper.get_download_informations(self.selected_quality_href)
         else:
             resolver_results = await self.scraper.resolver(self.selected_movie["movie_url"])
             while True:
@@ -116,19 +124,38 @@ class Search:
                 ).execute_async()
 
                 next_href = dict(resolver_results)[selected]
-                Logger.log(f"Moving to next: {next_href}" )
+                Logger.log(f"Moving to next --> {next_href}" )
                 resolver_results = await self.scraper.resolver(next_href)
-            available_servers = await self.scraper.get_download_informations(self.scraper.resolver_current_href)
-            
-        # 5. Validate and select download server
-        if not available_servers:
+            self.available_servers = await self.scraper.get_download_informations(self.scraper.resolver_current_href)
+
+    # Load and select servers
+    async def prompt_server_selection(self) -> None:
+        if not self.available_servers:
             console.print("[bold red]No servers available.[/bold red]")
             Logger.log("No server found. Exiting....")
             sys.exit(0)
 
         self.selected_server_url = await inquirer.fuzzy(
             message="Select the server:",
-            choices=available_servers,
+            choices=self.available_servers,
         ).execute_async()
         
         console.print(f"[green]Selected Server: {self.selected_server_url}[/green]")
+
+    # displays the results
+    async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:
+
+        # 1. Determine movie source
+        await self.determine_movie_source(query, year)
+
+        # 2. Prompt movie selection
+        await self.prompt_movie_selection()
+
+        # 3. Load available video qualities
+        await self.load_available_qualities()
+
+        # 4. Retrieve download servers
+        await self.retrieve_download_servers()  
+
+        # 5. Validate and select download server
+        await self.prompt_server_selection()
