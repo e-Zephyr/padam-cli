@@ -53,7 +53,7 @@ class Search:
                 if not link:
                     continue
                 self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
-                Logger.log(f"{len(self.results)} of Lates movies found")
+            Logger.log(f"{len(self.results)} of Latest movies found")
 
     #displays the results
     async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:

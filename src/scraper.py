@@ -97,22 +97,32 @@ class Scraper:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
             soup = await self.fetch_page(client, download_page_link)
             links = [link["href"] for link in soup.select("div.dlink a")]
-            
+            Logger.log(f"Links found : {links} in scraper.py get_dowlnoad_links method")
+
             dlinks = await self.fetch_page(client, links[0])
             download_links = [link["href"] for link in dlinks.select("div.dlink a")]
-            mp_4_links = [link for link in download_links if link.endswith((".mp4", ".m3u8"))]
+            Logger.log(f"download_links = {download_links}")
+            
+            mp_4_links = [link for link in download_links if link.endswith((".mp4", ".m3u8")) or "cdn" in link]
+            Logger.log(f"mp_4_links = {mp_4_links}")
+            
             return mp_4_links
         
     #used to crawling to the downloadpage
     async def get_download_informations(self, quality_href) -> list[str]:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
+            Logger.log(f"processing href : {quality_href} in scraper.py get_download_information method")
             soup = await self.fetch_page(client, urljoin(DOMAIN, quality_href))
             download_info_page_link = soup.find("a", class_ = "coral")
             
             if download_info_page_link:
+                Logger.log(f"download_info_page_link found : {download_info_page_link}")
                 dlinks = await self.fetch_page(client, urljoin(DOMAIN, download_info_page_link["href"]))
             else:
+                Logger.log(f"download_info_page_link Not found : {download_info_page_link}")
+                Logger.log(f"Now using resolver_current_href: {self.resolver_current_href}")
                 dlinks = await self.fetch_page(client, urljoin(DOMAIN, self.resolver_current_href))
+
             file_download_page_links = [link["href"] for link in dlinks.select("div.dlink a")]
             movie_download_links = await self.get_download_links(file_download_page_links[0])
 
