@@ -1,4 +1,5 @@
 DOMAIN = "https://moviesda33.com"
+CONFIG_URL = "https://raw.githubusercontent.com/e-Zephyr/padam-cli/main/config/domain.txt"
 
 HEADERS = {
     "User-Agent": (
