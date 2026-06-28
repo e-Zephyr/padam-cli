@@ -57,6 +57,8 @@ class Search:
 
     #displays the results
     async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:
+
+        # 1. Determine movie source
         if query:
             self.parse_search_url(query, year)
             await self.search_movie_url(query, year)
@@ -69,7 +71,7 @@ class Search:
         else:
             await self.search_latest_movies()
 
-        # 1. Movie Selection via Fuzzy Finder
+        # 2. Prompt movie selection
         movie_choices = [
             Choice(value=item, name=item["title"]) 
             for item in self.results
@@ -81,6 +83,8 @@ class Search:
             match_exact=False,
         ).execute_async()
         Logger.log(f"Selected Movie : {self.selected_movie}")
+
+        # 3. Load available video qualities
         first_letter = self.selected_movie["title"][0].lower()
         await self.scraper.get_qualities(self.selected_movie["movie_url"], first_letter)
         
@@ -92,7 +96,7 @@ class Search:
         }
         available = {k: v for k, v in available.items() if v}
 
-        # 2. Quality Selection (Standard List is cleaner for small sets, but fuzzy works too)
+        # 4. Retrieve download servers
         if available:
             selected_quality = await inquirer.select(
                 message="Select the quality:",
@@ -116,12 +120,12 @@ class Search:
                 resolver_results = await self.scraper.resolver(next_href)
             available_servers = await self.scraper.get_download_informations(self.scraper.resolver_current_href)
             
+        # 5. Validate and select download server
         if not available_servers:
             console.print("[bold red]No servers available.[/bold red]")
             Logger.log("No server found. Exiting....")
             sys.exit(0)
 
-        # 3. Server Selection via Fuzzy Finder
         self.selected_server_url = await inquirer.fuzzy(
             message="Select the server:",
             choices=available_servers,
