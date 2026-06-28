@@ -1,6 +1,6 @@
 # Maintainer: Karthikeyan K 
 pkgname=padam-cli
-pkgver=0.2.1
+pkgver=0.4.4
 pkgrel=1
 pkgdesc="Browse and play Tamil movies within your terminal"
 arch=('x86_64')
