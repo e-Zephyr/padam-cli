@@ -13,11 +13,15 @@ async def main():
     
     args.parse()
     if args.query:
-        await search.show_results_tui(args.query, args.year)
+        await search.show_results_tui(args.query, args.year, args.latest, args.dubbed)
         media = Media(url=search.selected_server_url, title=search.selected_movie["title"])
         media.process(args.download)
     elif args.latest:
-        await search.show_results_tui()
+        await search.show_results_tui(args.query, args.year, args.latest, args.dubbed)
+        media = Media(url=search.selected_server_url, title=search.selected_movie["title"])
+        media.process(args.download)
+    elif args.dubbed:
+        await search.show_results_tui(args.query, args.year, args.latest, args.dubbed)
         media = Media(url=search.selected_server_url, title=search.selected_movie["title"])
         media.process(args.download)
 

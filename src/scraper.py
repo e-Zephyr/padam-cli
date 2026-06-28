@@ -6,8 +6,9 @@ from rich.console import Console
 from typing import Optional
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from src.constant import DOMAIN, HEADERS, HOME
+from src.constant import DOMAIN, HEADERS
 from src.logger import Logger
+from src.utils import is_valid
 
 console = Console()
 
@@ -57,7 +58,7 @@ class Scraper:
     async def get_qualities(self, movie_url: str, query: str) -> None:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             links = await self.extract_links(client, movie_url)
-            original_page = urljoin( DOMAIN, [href for text, href in links if query.lower() in text.lower() and href != "#" and href != "/"][0])
+            original_page = urljoin( DOMAIN, [href for text, href in links if query.lower() in text.lower() and is_valid(text,href)][0])
             if not original_page:
                 console.print(f"[red]There is problem in scaraper[/red]")
                 Logger("Movie Link Not Found: in scraper.py get_qualities method")
@@ -89,8 +90,9 @@ class Scraper:
         self.resolver_current_href = href
         async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
             links = await self.extract_links(client, urljoin(DOMAIN, href))
-            results = [(text, href) for text, href in links if href not in ("/", "#") and not re.fullmatch(r"[A-Z]",text)]
+            results = [(text, href) for text, href in links if is_valid(text,href)]
             return results
+
 
     #fetch the downloable mp3 or m3u8 urls
     async def get_download_links(self, download_page_link: str) -> list[str]:

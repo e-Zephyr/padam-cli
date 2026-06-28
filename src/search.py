@@ -1,9 +1,10 @@
-from src.constant import DOMAIN , HEADERS, HOME
+from src.constant import DOMAIN , HEADERS, HOME, DUBBED_MOVIES
 from urllib.parse import urljoin
 from src.scraper import Scraper
 from InquirerPy import inquirer
 from InquirerPy.base import Choice
 from src.logger import Logger
+from src.utils import is_valid
 
 from rich.console import Console
 import sys
@@ -61,8 +62,24 @@ class Search:
                 self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
             Logger.log(f"{len(self.results)} of Latest movies found")
 
+    async def get_dubbed_movies(self) -> None:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=60, headers=HEADERS) as client:
+            pages = await self.scraper.get_pagination_pages(client, DUBBED_MOVIES)
+            for page in pages:
+                links = await self.scraper.extract_links(client, page)
+                for text, href in links:
+                    if is_valid(text, href):
+                        movie = {"title": text, "movie_url": urljoin(DOMAIN,href)}
+                        self.results.append(movie)
+            Logger.log(f"{len(self.results)} of dubbed movies found")
+
+
     # Determine movie source
-    async def determine_movie_source(self, query:str | None = None, year:str | None = None) -> None:
+    async def determine_movie_source(self,
+                                     query:str | None = None, 
+                                     year:str | None = None,
+                                     latest:bool | None = None,
+                                     dubbed:bool | None = None) -> None:
         if query:
             self.parse_search_url(query, year)
             await self.search_movie_url(query, year)
@@ -72,8 +89,10 @@ class Search:
                 Logger.log("No movies found. Exiting.......")
                 sys.exit(0)
                 return
-        else:
+        elif latest:
             await self.search_latest_movies()
+        elif dubbed:
+            await self.get_dubbed_movies()
 
     # Prompt movie selection
     async def prompt_movie_selection(self) -> None:
@@ -143,10 +162,15 @@ class Search:
         console.print(f"[green]Selected Server: {self.selected_server_url}[/green]")
 
     # displays the results
-    async def show_results_tui(self, query: str | None = None, year: str | None = None) -> None:
+    async def show_results_tui(self, 
+                               query: str | None = None, 
+                               year: str | None = None, 
+                               latest:bool | None = None, 
+                               dubbed:bool | None = None 
+                               ) -> None:
 
         # 1. Determine movie source
-        await self.determine_movie_source(query, year)
+        await self.determine_movie_source(query, year, latest, dubbed)
 
         # 2. Prompt movie selection
         await self.prompt_movie_selection()
