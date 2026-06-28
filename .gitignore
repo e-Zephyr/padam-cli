@@ -13,4 +13,4 @@ cache/
 .gitignore
 test.py
 main.bak.py
-*txt
+logs.txt
