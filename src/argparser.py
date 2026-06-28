@@ -31,6 +31,12 @@ class ArgParse:
             help="Movie year"
         )
 
+        parser.add_argument(
+            "--update",
+            action="store_true",
+            help="Update padam-cli"
+        )
+
         # play/download
         group = parser.add_mutually_exclusive_group()
 
@@ -55,6 +61,7 @@ class ArgParse:
         self.year = args.year
         self.latest = args.command == "latest"
         self.dubbed = args.command == "dubbed"
+        self.update = args.update
 
         # Download is the default
         self.download = not args.play

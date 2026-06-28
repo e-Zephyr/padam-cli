@@ -2,6 +2,7 @@ from src.argparser import ArgParse
 from src.search import Search
 from src.media import Media
 from rich.console import Console
+from src.update import Updater
 
 import asyncio
 import sys
@@ -12,6 +13,11 @@ async def main():
     search = Search()
     
     args.parse()
+
+    if args.update:
+        Updater.update()
+        sys.exit(1)
+
     if args.query:
         await search.show_results_tui(args.query, args.year, args.latest, args.dubbed)
         media = Media(url=search.selected_server_url, title=search.selected_movie["title"])
