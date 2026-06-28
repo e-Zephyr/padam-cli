@@ -85,7 +85,7 @@ class Scraper:
                 elif quality == "360":
                     self.p360 = href
     
-
+    # Resolve when something failed in scraping
     async def resolver(self, href: str):
         self.resolver_current_href = href
         async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
@@ -105,10 +105,10 @@ class Scraper:
             download_links = [link["href"] for link in dlinks.select("div.dlink a")]
             Logger.log(f"download_links = {download_links}")
             
-            mp_4_links = [link for link in download_links if link.endswith((".mp4", ".m3u8")) or "cdn" in link]
-            Logger.log(f"mp_4_links = {mp_4_links}")
+            filtered_download_links = [link for link in download_links if link.endswith((".mp4", ".m3u8")) or "cdn" in link]
+            Logger.log(f"filtered = {filtered_download_links}")
             
-            return mp_4_links
+            return filtered_download_links
         
     #used to crawling to the downloadpage
     async def get_download_informations(self, quality_href) -> list[str]:
