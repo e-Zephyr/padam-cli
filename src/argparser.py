@@ -8,6 +8,13 @@ class ArgParse:
             description="Browse, stream and download Tamil movies."
         )
 
+
+        parser.add_argument(
+            "--update",
+            action="store_true",
+            help="Update padam-cli"
+        )
+
         # latest command
         parser.add_argument(
             "command",
@@ -29,12 +36,6 @@ class ArgParse:
             type=str,
             metavar="YEAR",
             help="Movie year"
-        )
-
-        parser.add_argument(
-            "--update",
-            action="store_true",
-            help="Update padam-cli"
         )
 
         # play/download
