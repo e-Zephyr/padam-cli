@@ -2,7 +2,6 @@ from src.argparser import ArgParse
 from src.search import Search
 from src.media import Media
 from rich.console import Console
-from src.update import Updater
 
 import asyncio
 import sys
