@@ -14,10 +14,6 @@ async def main():
     
     args.parse()
 
-    if args.update:
-        Updater.update()
-        sys.exit(1)
-
     if args.query:
         await search.show_results_tui(args.query, args.year, args.latest, args.dubbed)
         media = Media(url=search.selected_server_url, title=search.selected_movie["title"])

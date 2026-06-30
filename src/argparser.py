@@ -8,13 +8,6 @@ class ArgParse:
             description="Browse, stream and download Tamil movies."
         )
 
-
-        parser.add_argument(
-            "--update",
-            action="store_true",
-            help="Update padam-cli"
-        )
-
         # latest command
         parser.add_argument(
             "command",
@@ -62,7 +55,6 @@ class ArgParse:
         self.year = args.year
         self.latest = args.command == "latest"
         self.dubbed = args.command == "dubbed"
-        self.update = args.update
 
         # Download is the default
         self.download = not args.play
