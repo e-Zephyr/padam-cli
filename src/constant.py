@@ -1,5 +1,5 @@
-DOMAIN = "https://moviesda33.com"
-CONFIG_URL = "https://raw.githubusercontent.com/e-Zephyr/padam-cli/main/config/domain.txt"
+MOVIESDA = "https://moviesda33.com"
+CONFIG_URL = "https://raw.githubusercontent.com/e-Zephyr/padam-cli/main/config/MOVIESDA.txt"
 
 HEADERS = {
     "User-Agent": (
@@ -10,8 +10,8 @@ HEADERS = {
 
 DOWNLOAD_PATH = "~/Downloads/"
 
-HOME = DOMAIN + "/home.html"
-DUBBED_MOVIES = DOMAIN + "/tamil-dubbed-movies/"
+MOVIESDA_HOME = MOVIESDA + "/MOVIESDA_HOME.html"
+DUBBED_MOVIES = MOVIESDA + "/tamil-dubbed-movies/"
 
 JUNK_TITLES = {
     "moviesda33.com",

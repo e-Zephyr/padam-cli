@@ -6,7 +6,7 @@ from rich.console import Console
 from typing import Optional
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from src.constant import DOMAIN, HEADERS
+from src.constant import MOVIESDA, HEADERS
 from src.logger import Logger
 from src.utils import is_valid
 
@@ -50,7 +50,7 @@ class Scraper:
 
         for text, href in links:
             if text.isdigit():
-                pages.add(urljoin(DOMAIN,href))
+                pages.add(urljoin(MOVIESDA,href))
         Logger.log(f"{len(pages)} pages found")
         return sorted(pages)
     
@@ -58,7 +58,7 @@ class Scraper:
     async def get_qualities(self, movie_url: str, query: str) -> None:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             links = await self.extract_links(client, movie_url)
-            original_page = urljoin( DOMAIN, [href for text, href in links if query.lower() in text.lower() and is_valid(text,href)][0])
+            original_page = urljoin( MOVIESDA, [href for text, href in links if query.lower() in text.lower() and is_valid(text,href)][0])
             if not original_page:
                 console.print(f"[red]There is problem in scaraper[/red]")
                 Logger("Movie Link Not Found: in scraper.py get_qualities method")
@@ -89,7 +89,7 @@ class Scraper:
     async def resolver(self, href: str):
         self.resolver_current_href = href
         async with httpx.AsyncClient(follow_redirects=True, timeout=30,headers=HEADERS)as client:
-            links = await self.extract_links(client, urljoin(DOMAIN, href))
+            links = await self.extract_links(client, urljoin(MOVIESDA, href))
             results = [(text, href) for text, href in links if is_valid(text,href)]
             return results
 
@@ -114,16 +114,16 @@ class Scraper:
     async def get_download_informations(self, quality_href) -> list[str]:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
             Logger.log(f"processing href : {quality_href} in scraper.py get_download_information method")
-            soup = await self.fetch_page(client, urljoin(DOMAIN, quality_href))
+            soup = await self.fetch_page(client, urljoin(MOVIESDA, quality_href))
             download_info_page_link = soup.find("a", class_ = "coral")
             
             if download_info_page_link:
                 Logger.log(f"download_info_page_link found : {download_info_page_link}")
-                dlinks = await self.fetch_page(client, urljoin(DOMAIN, download_info_page_link["href"]))
+                dlinks = await self.fetch_page(client, urljoin(MOVIESDA, download_info_page_link["href"]))
             else:
                 Logger.log(f"download_info_page_link Not found : {download_info_page_link}")
                 Logger.log(f"Now using resolver_current_href: {self.resolver_current_href}")
-                dlinks = await self.fetch_page(client, urljoin(DOMAIN, self.resolver_current_href))
+                dlinks = await self.fetch_page(client, urljoin(MOVIESDA, self.resolver_current_href))
 
             file_download_page_links = [link["href"] for link in dlinks.select("div.dlink a")]
             movie_download_links = await self.get_download_links(file_download_page_links[0])

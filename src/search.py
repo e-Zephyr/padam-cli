@@ -1,4 +1,4 @@
-from src.constant import DOMAIN , HEADERS, HOME, DUBBED_MOVIES
+from src.constant import MOVIESDA , HEADERS, MOVIESDA_HOME, DUBBED_MOVIES
 from urllib.parse import urljoin
 from src.scraper import Scraper
 from InquirerPy import inquirer
@@ -30,10 +30,10 @@ class Search:
     #parse the base url for search
     def parse_search_url(self, query:str, year: str | None=None) -> None:
         if year:
-            self.search_url = urljoin(DOMAIN,f"/tamil-{year}-movies/")
+            self.search_url = urljoin(MOVIESDA,f"/tamil-{year}-movies/")
         else:
             href = query[0].lower()
-            self.search_url = urljoin(DOMAIN ,f"/tamil-movies/{href}/")
+            self.search_url = urljoin(MOVIESDA ,f"/tamil-movies/{href}/")
         Logger.log(f"Searching url: {self.search_url}")
 
     #search in the parsed base url
@@ -43,7 +43,7 @@ class Search:
             for page in pages:
                 links = await self.scraper.extract_links(client,page)
                 for text, href in links:
-                    movie = {"title": text, "movie_url": urljoin(DOMAIN,href)}
+                    movie = {"title": text, "movie_url": urljoin(MOVIESDA,href)}
                     if query.lower() in text.lower():
                         self.results.append(movie)
                         Logger.log(f" Found : [{movie["title"]}] --> {movie["movie_url"]}")
@@ -53,13 +53,13 @@ class Search:
     # used only for fetch latest added movies
     async def search_latest_movies(self) -> None:
         async with httpx.AsyncClient(follow_redirects=True, timeout=30, headers=HEADERS) as client:
-            soup = await self.scraper.fetch_page(client, HOME)
+            soup = await self.scraper.fetch_page(client, MOVIESDA_HOME)
             for movie in soup.select("div.latest"):
                 title = movie.find("strong").get_text(strip=True)
                 link = movie.find("a", string="Download Now") or movie.find("a", class_= "green")
                 if not link:
                     continue
-                self.results.append({"title":title, "movie_url": urljoin(DOMAIN,link["href"])})
+                self.results.append({"title":title, "movie_url": urljoin(MOVIESDA,link["href"])})
             Logger.log(f"{len(self.results)} of Latest movies found")
 
     async def get_dubbed_movies(self) -> None:
@@ -69,7 +69,7 @@ class Search:
                 links = await self.scraper.extract_links(client, page)
                 for text, href in links:
                     if is_valid(text, href):
-                        movie = {"title": text, "movie_url": urljoin(DOMAIN,href)}
+                        movie = {"title": text, "movie_url": urljoin(MOVIESDA,href)}
                         self.results.append(movie)
             Logger.log(f"{len(self.results)} of dubbed movies found")
 
