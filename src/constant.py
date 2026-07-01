@@ -1,4 +1,5 @@
 MOVIESDA = "https://moviesda33.com"
+ISAIDUB = "https://isaidub.ceo"
 CONFIG_URL = "https://raw.githubusercontent.com/e-Zephyr/padam-cli/main/config/MOVIESDA.txt"
 
 HEADERS = {

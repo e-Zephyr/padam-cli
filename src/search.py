@@ -1,4 +1,4 @@
-from src.constant import MOVIESDA , HEADERS, MOVIESDA_HOME, DUBBED_MOVIES
+from src.constant import MOVIESDA, ISAIDUB, HEADERS, MOVIESDA_HOME, DUBBED_MOVIES
 from urllib.parse import urljoin
 from src.scraper import Scraper
 from InquirerPy import inquirer
@@ -24,16 +24,17 @@ class Search:
         self.available_servers = None
         self.selected_server_url = None
         
-
+        self.domain = None
+        self.isdubsearch = False
         self.scraper = Scraper()
 
     #parse the base url for search
     def parse_search_url(self, query:str, year: str | None=None) -> None:
         if year:
-            self.search_url = urljoin(MOVIESDA,f"/tamil-{year}-movies/")
+            self.search_url = urljoin(ISAIDUB, f"/tamil-{year}-dubbed-movies/") if self.isdubsearch else urljoin(MOVIESDA,f"/tamil-{year}-movies/")
         else:
             href = query[0].lower()
-            self.search_url = urljoin(MOVIESDA ,f"/tamil-movies/{href}/")
+            self.search_url = urljoin(ISAIDUB, f"/tamil-atoz-dubbed-movies/{href}") if self.isdubsearch else urljoin(MOVIESDA ,f"/tamil-movies/{href}/")
         Logger.log(f"Searching url: {self.search_url}")
 
     #search in the parsed base url
@@ -43,7 +44,7 @@ class Search:
             for page in pages:
                 links = await self.scraper.extract_links(client,page)
                 for text, href in links:
-                    movie = {"title": text, "movie_url": urljoin(MOVIESDA,href)}
+                    movie = {"title": text, "movie_url": urljoin(self.domain,href)}
                     if query.lower() in text.lower():
                         self.results.append(movie)
                         Logger.log(f" Found : [{movie["title"]}] --> {movie["movie_url"]}")
@@ -59,7 +60,7 @@ class Search:
                 link = movie.find("a", string="Download Now") or movie.find("a", class_= "green")
                 if not link:
                     continue
-                self.results.append({"title":title, "movie_url": urljoin(MOVIESDA,link["href"])})
+                self.results.append({"title":title, "movie_url": urljoin(self.domain,link["href"])})
             Logger.log(f"{len(self.results)} of Latest movies found")
 
     async def get_dubbed_movies(self) -> None:
@@ -69,7 +70,7 @@ class Search:
                 links = await self.scraper.extract_links(client, page)
                 for text, href in links:
                     if is_valid(text, href):
-                        movie = {"title": text, "movie_url": urljoin(MOVIESDA,href)}
+                        movie = {"title": text, "movie_url": urljoin(self.domain,href)}
                         self.results.append(movie)
             Logger.log(f"{len(self.results)} of dubbed movies found")
 
@@ -166,9 +167,13 @@ class Search:
                                query: str | None = None, 
                                year: str | None = None, 
                                latest:bool | None = None, 
-                               dubbed:bool | None = None 
+                               dubbed:bool | None = None,
+                               isdubsearch:bool | None = None 
                                ) -> None:
-
+        
+        self.isdubsearch = isdubsearch
+        self.domain = ISAIDUB if self.isdubsearch else MOVIESDA
+        self.scraper.domain = self.domain
         # 1. Determine movie source
         await self.determine_movie_source(query, year, latest, dubbed)
 

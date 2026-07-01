@@ -48,6 +48,7 @@ class Media:
             if choise!=3 : console.print(f"[bold green]✓ Complete:[/bold green] {self.output_path}")
         except Exception as e:
             console.print(f"[bold red]✗ Download failed.[/bold red] :\n{e}")
+            
     def stream(self):
         console.print("[bold cyan]Starting stream with mpv...[/bold cyan]")
         subprocess.run(["mpv", self.url], check=True)

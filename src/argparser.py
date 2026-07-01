@@ -12,8 +12,15 @@ class ArgParse:
         parser.add_argument(
             "command",
             nargs="?",
-            choices=["latest", "dubbed"],
+            choices=["list-latest", "list-dubbed"],
             help="Show latest or dubbed movies"
+        )
+
+        # dubbed search flag
+        parser.add_argument(
+            "--dubbed",
+            action="store_true",
+            help="Search movie in dubbed lists"
         )
 
         # search
@@ -53,8 +60,9 @@ class ArgParse:
 
         self.query = args.search
         self.year = args.year
-        self.latest = args.command == "latest"
-        self.dubbed = args.command == "dubbed"
+        self.isdubsearch = args.dubbed
+        self.latest = args.command == "list-latest"
+        self.dubbed = args.command == "list-dubbed"
 
         # Download is the default
         self.download = not args.play
