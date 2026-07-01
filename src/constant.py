@@ -10,7 +10,7 @@ HEADERS = {
 
 DOWNLOAD_PATH = "~/Downloads/"
 
-MOVIESDA_HOME = MOVIESDA + "/MOVIESDA_HOME.html"
+MOVIESDA_HOME = MOVIESDA + "/home.html"
 DUBBED_MOVIES = MOVIESDA + "/tamil-dubbed-movies/"
 
 JUNK_TITLES = {
