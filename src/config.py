@@ -5,7 +5,7 @@ import urllib.error
 class Config:
 
     def __init__(self):
-        self.config_url = "https://raw.githubusercontent.com/e-Zephyr/padam-cli/main/config/config.json"
+        self.config_url = "https://raw.githubusercontent.com/e-Zephyr/padam-cli/refs/heads/master/config/config.json"
 
         # moviesda
         self.moviesda = None

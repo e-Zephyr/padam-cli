@@ -3,7 +3,7 @@
         "moviesda": "https://moviesda33.com",
         "isaidub": "https://isaidub.ceo"
     },
-    "config_url": "https://raw.githubusercontent.com/e-Zephyr/padam-cli/main/config/config.json",
+    "config_url": "https://raw.githubusercontent.com/e-Zephyr/padam-cli/refs/heads/master/config/config.json",
     "download_path": "~/Downloads/",
     "endpoints": {
         "moviesda_home": "/home.html",
